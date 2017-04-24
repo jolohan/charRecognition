@@ -92,7 +92,7 @@ ENV/
 .idea/
 .DS_Store
 train.sh
-
+test.sh
 *.pyc
 *.swp
 *.so

@@ -110,7 +110,7 @@ def display_label_images(images, label):
 
 def save_model(sess):
     if not os.path.exists("output"): os.makedirs("output")
-    dirname = datetime.datetime.now().strftime('%Y_%m_%d_%H.%M') + "_" + str(TRAINING_NUMBER)
+    dirname = datetime.datetime.now().strftime('%Y_%m_%d_%H.%M') + "_" + str(TRAINING_DATA_SET)
     filename = str(TRAINING_NUMBER)
     os.makedirs(os.path.join("output", filename, dirname))
 
@@ -198,8 +198,8 @@ def train():
             train = graph.get_operation_by_name("Adam")
         else:
             hidden1 = tf.contrib.layers.fully_connected(images_flat, 100, tf.nn.relu)
-            hidden2 = tf.contrib.layers.fully_connected(hidden1, 100, tf.nn.relu)
-            logits = tf.contrib.layers.fully_connected(hidden2, 62, tf.nn.relu)
+            hidden2 = tf.contrib.layers.fully_connected(hidden1, 52, tf.nn.relu)
+            logits = tf.contrib.layers.fully_connected(hidden2, 26, tf.nn.relu)
 
             # Define the loss function.
             # Cross-entropy is a good choice for classification.
@@ -245,7 +245,7 @@ def train():
             train_loss_a.append(loss_value)
             display_iter.append(i)
 
-        print("Iter: " + str(TRAINING_NUMBER-1) + ", Loss: ", loss_value, ", Time elapsed: ", time.time() - start)
+        print("Iter: " + str(TRAINING_NUMBER) + ", Loss: ", loss_value, ", Time elapsed: ", time.time() - start)
 
        # Save session
         save_model(session)
