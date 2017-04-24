@@ -97,5 +97,5 @@ train.sh
 *.swp
 *.so
 
-datasets/detection
+chars74k-lite
 output/*
