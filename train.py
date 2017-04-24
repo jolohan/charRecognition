@@ -10,7 +10,7 @@ import datetime
 import glob
 import time
 
-TRAINING_NUMBER = 500
+TRAINING_NUMBER = 100
 DISPLAY_FREQUENCY = 50
 MODEL_DIR = "BelgiumTS/2017_04_22_17.34_20"
 #MODEL_DIR = "Training_test_small_set/2017_04_22_17.27_100"
@@ -20,7 +20,7 @@ CONTINUE_TRAINING_ON_MODEL = False
 #TRAINING_DATA_SET = "BelgiumTS"
 TRAINING_DATA_SET = "chars74k-lite"
 IMAGE_SIZE_X = 20
-IMAGE_SIZE_Y = 20
+IMAGE_SIZE_Y = IMAGE_SIZE_X
 
 def main():
     start_time = time.time()
@@ -44,7 +44,7 @@ def load_train_data():
     labels: a list of numbers that represent the images labels.
     """
     # Get all subdirectories of data_dir. Each represents a label.
-    data_dir = os.path.join(TRAINING_DATA_SET, "Training")
+    data_dir = os.path.join("datasets", TRAINING_DATA_SET, "Training")
     directories = [d for d in os.listdir(data_dir)
                    if os.path.isdir(os.path.join(data_dir, d))]
     # Loop through the label directories and collect the data in
@@ -237,13 +237,13 @@ def train():
         train_loss_a = []
         display_iter = []
 
-        for i in range(TRAINING_NUMBER):
+        for i in range(1, TRAINING_NUMBER+1):
             _, loss_value = session.run([train, loss],
                                         feed_dict={images_ph: train_images_a, labels_ph: labels_a})
             if i % DISPLAY_FREQUENCY == 0:
                 print("Iter: " + str(i) +", Loss: ", loss_value, ", Time elapsed: ", time.time()-start)
-                train_loss_a.append(loss_value)
-                display_iter.append(i)
+            train_loss_a.append(loss_value)
+            display_iter.append(i)
 
         print("Iter: " + str(TRAINING_NUMBER-1) + ", Loss: ", loss_value, ", Time elapsed: ", time.time() - start)
 
