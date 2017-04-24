@@ -91,17 +91,11 @@ ENV/
 # Johan
 .idea/
 .DS_Store
+train.sh
 
-# TensorBox
 *.pyc
-TensorBox/data/*
-TensorBox/output/*
 *.swp
 *.so
-TensorBox/inception/*
 
-datasets/BelgiumTS/Testing
-datasets/BelgiumTS/Training
-datasets/GTSRB
 datasets/detection
 output/*
