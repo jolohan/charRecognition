@@ -18,6 +18,12 @@ TRAINING_DATA_SET = "chars74k-lite"
 IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
 
+# Network paramters
+LEARNING_RATE = 0.002
+NUMBER_OF_HIDDEN_NODES_1 = 100
+NUMBER_OF_HIDDEN_NODES_2 = 50
+NUMBER_OF_LOGITS = 26
+
 def main():
     start_time = time.time()
     train_loss_a, display_iter = train()
@@ -206,16 +212,16 @@ def train():
             loss = graph.get_tensor_by_name("Lossy:0")
             train = graph.get_operation_by_name("Adam")
         else:
-            hidden1 = tf.contrib.layers.fully_connected(images_flat, 50, tf.nn.relu)
-            hidden2 = tf.contrib.layers.fully_connected(hidden1, 52, tf.nn.relu)
-            logits = tf.contrib.layers.fully_connected(hidden2, 26, tf.nn.relu)
+            hidden1 = tf.contrib.layers.fully_connected(images_flat, NUMBER_OF_HIDDEN_NODES_1, tf.nn.relu)
+            hidden2 = tf.contrib.layers.fully_connected(hidden1, NUMBER_OF_HIDDEN_NODES_2, tf.nn.relu)
+            logits = tf.contrib.layers.fully_connected(hidden2, NUMBER_OF_LOGITS, tf.nn.relu)
 
             # Define the loss function.
             # Cross-entropy is a good choice for classification.
             loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels_ph),
                                   name="Lossy")
             # Create training op.
-            adam = tf.train.AdamOptimizer(learning_rate=0.002, name="Adam")
+            adam = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE, name="Adam")
             train = adam.minimize(loss)
             print(train)
 
