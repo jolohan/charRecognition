@@ -18,10 +18,11 @@ IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
 
 # Network paramters
-TRAINING_NUMBER = 1000
+TEST_SET_SHARE = 0.1
+TRAINING_NUMBER = 500
 LEARNING_RATE = 0.002
 NUMBER_OF_HIDDEN_NODES_1 = 100
-NUMBER_OF_HIDDEN_NODES_2 = 50
+NUMBER_OF_HIDDEN_NODES_2 = 100
 NUMBER_OF_LOGITS = 26
 
 def main():
@@ -62,14 +63,16 @@ def load_train_data():
                       for f in os.listdir(label_dir) if f.endswith(".jpg")]
         # For each label, load it's images and add them to the images list.
         # And add the label number (i.e. directory name) to the labels list.
-
-        for f in file_names:
+        numberOfImages = len(file_names)
+        for g in range(int(round(numberOfImages * TEST_SET_SHARE)), numberOfImages):
+            f = file_names[g]
             #images.append(pre_process_single_img(skimage.data.imread(f)))
             images.append(skimage.data.imread(f))
             labels.append(i)
 
         print("Loaded directory number ", i)
         i += 1
+    print("Loaded %i pics" % len(images))
     return images, labels
 
 def load_test_data_as_numpy_array(data_dir):
@@ -122,9 +125,10 @@ def save_model(sess):
     # you will get saved graph files:my-model.meta
 
 def pre_process_single_img(img):
-    img_y = cv2.cvtColor(img, (cv2.COLOR_BGR2YUV))[:,:,0]
+    img_y = img
     img_y = (img_y / 255.).astype(np.float32)
-    img_y = (exposure.equalize_adapthist(img_y,) - 0.5)
+    #img_y = (exposure.equalize_adapthist(img_y,) - 0.5)
+    #img_y = skimage.filters.sobel(img_y)
     return img_y
 
 def add_dimension(img):
@@ -144,6 +148,9 @@ def train():
     # Load training and testing datasets.
 
     train_images, labels = load_train_data()
+    for i in range(len(train_images)):
+        image = pre_process_single_img(train_images[i])
+        train_images[i] = image
 
     print("Unique Labels: {0}\nTotal Train Images: {1}".format(len(set(labels)), len(train_images)))
 
@@ -163,7 +170,7 @@ def train():
     labels_a = np.array(labels)
     print("labels_a:", labels_a)
     train_images_a = np.array(train_images)
-    train_images_a = normalizeNpArray(train_images_a)
+    #train_images_a = normalizeNpArray(train_images_a)
 
     print("labels: ", labels_a.shape, "\nTrain images: ", train_images_a.shape)
 

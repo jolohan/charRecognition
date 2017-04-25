@@ -1,5 +1,6 @@
 import os
 import skimage.data
+import skimage.filters
 import skimage.transform
 import skimage.exposure as exposure
 import numpy as np
@@ -9,9 +10,10 @@ import datetime
 import glob
 #import cv2
 
-MODEL_DIR = "output/1000/2017_04_25_13.03_chars74k-lite"
+MODEL_DIR = "output/500/2017_04_25_16.13_chars74k-lite"
 TEST_DATA_SET = "chars74k-lite"
 
+TEST_SET_SHARE = 0.1
 IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
 
@@ -29,9 +31,10 @@ def normalizeNpArray(npArray):
     return images_a
 
 def pre_process_single_img(img):
-    img_y = cv2.cvtColor(img, (cv2.COLOR_BGR2YUV))[:,:,0]
+    img_y = img
     img_y = (img_y / 255.).astype(np.float32)
-    img_y = (exposure.equalize_adapthist(img_y,) - 0.5)
+    #img_y = (exposure.equalize_adapthist(img_y,) - 0.5)
+    #img_y = skimage.filters.sobel(img_y)
     return img_y
 
 def add_dimension(img):
@@ -50,6 +53,9 @@ def test():
 
     # Load the test dataset.
     test_images, test_labels = load_data()
+    for i in range(len(test_images)):
+        image = pre_process_single_img(test_images[i])
+        test_images[i] = image
     #test_images = load_test_data_as_numpy_array(test_data_dir)
 
     # Transform the images, just like we did with the training set.
@@ -59,7 +65,7 @@ def test():
     # Add dimension for tensorflow
     test_images = [add_dimension(image) for image in test_images]
     test_images = np.array(test_images)
-    test_images = normalizeNpArray(test_images)
+    #test_images = normalizeNpArray(test_images)
 
     # Create a graph to hold the model.
     graph = tf.get_default_graph()
@@ -163,14 +169,16 @@ def load_data():
                       for f in os.listdir(label_dir) if f.endswith(".jpg")]
         # For each label, load it's images and add them to the images list.
         # And add the label number (i.e. directory name) to the labels list.
-
-        for f in file_names:
+        numberOfImages = len(file_names)
+        for g in range(int(round(numberOfImages*TEST_SET_SHARE))):
+            f = file_names[g]
             #images.append(pre_process_single_img(skimage.data.imread(f)))
             images.append(skimage.data.imread(f))
             labels.append(i)
 
         print("Loaded directory number ", i)
         i += 1
+    print("Loaded %i pics" %len(images))
     return images, labels
 
 main()
