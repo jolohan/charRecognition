@@ -10,14 +10,10 @@ import datetime
 import glob
 import time
 
-TRAINING_NUMBER = 100
+TRAINING_NUMBER = 1000
 DISPLAY_FREQUENCY = 50
-MODEL_DIR = "BelgiumTS/2017_04_22_17.34_20"
-#MODEL_DIR = "Training_test_small_set/2017_04_22_17.27_100"
 CONTINUE_TRAINING_ON_MODEL = False
 
-#TRAINING_DATA_SET = "FromTensorBox/overfeat_rezoom_2017_04_18_23.35"
-#TRAINING_DATA_SET = "BelgiumTS"
 TRAINING_DATA_SET = "chars74k-lite"
 IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
@@ -128,6 +124,16 @@ def pre_process_single_img(img):
 def add_dimension(img):
     return img.reshape(img.shape + (1,))
 
+def normalizeNpArray(npArray):
+    train_images_a = npArray
+    train_images_a = train_images_a.astype(np.float32)
+    for i in range(len(train_images_a)):
+        for g in range(len(train_images_a[i])):
+            for h in range(len(train_images_a[i][g])):
+                a = train_images_a[i][g][h]/255.0
+                train_images_a[i][g][h] = a
+    return train_images_a
+
 def train():
     # Load training and testing datasets.
 
@@ -149,7 +155,10 @@ def train():
     train_images = [add_dimension(image) for image in train_images]
 
     labels_a = np.array(labels)
+    print("labels_a:", labels_a)
     train_images_a = np.array(train_images)
+    train_images_a = normalizeNpArray(train_images_a)
+
     print("labels: ", labels_a.shape, "\nTrain images: ", train_images_a.shape)
 
     if CONTINUE_TRAINING_ON_MODEL:
@@ -197,7 +206,7 @@ def train():
             loss = graph.get_tensor_by_name("Lossy:0")
             train = graph.get_operation_by_name("Adam")
         else:
-            hidden1 = tf.contrib.layers.fully_connected(images_flat, 100, tf.nn.relu)
+            hidden1 = tf.contrib.layers.fully_connected(images_flat, 50, tf.nn.relu)
             hidden2 = tf.contrib.layers.fully_connected(hidden1, 52, tf.nn.relu)
             logits = tf.contrib.layers.fully_connected(hidden2, 26, tf.nn.relu)
 
@@ -206,7 +215,7 @@ def train():
             loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels_ph),
                                   name="Lossy")
             # Create training op.
-            adam = tf.train.AdamOptimizer(learning_rate=0.001, name="Adam")
+            adam = tf.train.AdamOptimizer(learning_rate=0.002, name="Adam")
             train = adam.minimize(loss)
             print(train)
 
@@ -240,7 +249,7 @@ def train():
         for i in range(1, TRAINING_NUMBER+1):
             _, loss_value = session.run([train, loss],
                                         feed_dict={images_ph: train_images_a, labels_ph: labels_a})
-            if i % DISPLAY_FREQUENCY == 0:
+            if i % DISPLAY_FREQUENCY == 1:
                 print("Iter: " + str(i) +", Loss: ", loss_value, ", Time elapsed: ", time.time()-start)
             train_loss_a.append(loss_value)
             display_iter.append(i)

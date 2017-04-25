@@ -9,19 +9,24 @@ import datetime
 import glob
 #import cv2
 
-#MODEL_DIR = "Training_test_small_set/2017_04_23_11.57_1000" #"BelgiumTS/2017_04_18_17.57"
-MODEL_DIR = "output/100/2017_04_24_23.10_100"
-#MODEL_DIR = "trainedNetworks/ClassificationNetworks/grayscale_GTSRB_1001iter_trainLoss_0.326"
-#TEST_DATA_SET = "BelgiumTS"
-#TEST_DATA_SET = "Training_test_small_set"
+MODEL_DIR = "output/1000/2017_04_25_13.03_chars74k-lite"
 TEST_DATA_SET = "chars74k-lite"
-#TEST_DATA_SET = "FromTensorBox/overfeat_rezoom_2017_04_18_23.35"
 
 IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
 
 def main():
     test()
+
+def normalizeNpArray(npArray):
+    images_a = npArray
+    images_a = images_a.astype(np.float32)
+    for i in range(len(images_a)):
+        for g in range(len(images_a[i])):
+            for h in range(len(images_a[i][g])):
+                a = images_a[i][g][h]/255.0
+                images_a[i][g][h] = a
+    return images_a
 
 def pre_process_single_img(img):
     img_y = cv2.cvtColor(img, (cv2.COLOR_BGR2YUV))[:,:,0]
@@ -33,10 +38,7 @@ def add_dimension(img):
     return img.reshape(img.shape + (1,))
 
 def test():
-    ROOT_PATH = "datasets"
     directory = TEST_DATA_SET
-    # Load training and testing datasets.
-    test_data_dir = os.path.join(ROOT_PATH, directory, "Testing")
 
     # Restore session and variables/nodes/weights
     session = tf.Session()
@@ -55,7 +57,9 @@ def test():
     #                 for image in test_images]
 
     # Add dimension for tensorflow
-    train_images = [add_dimension(image) for image in test_images]
+    test_images = [add_dimension(image) for image in test_images]
+    test_images = np.array(test_images)
+    test_images = normalizeNpArray(test_images)
 
     # Create a graph to hold the model.
     graph = tf.get_default_graph()
@@ -95,7 +99,7 @@ def test():
     # Run predictions against the full test set.
 
     predicted = session.run([predicted_labels],
-                            feed_dict={images_ph: train_images})[0]
+                            feed_dict={images_ph: test_images})[0]
 
     # Calculate how many matches we got.
     if (len(test_labels) != len(predicted)):
@@ -116,7 +120,7 @@ def test():
     i = 0
 
     for pl in predicted:
-        predicted_image = train_images[i]
+        predicted_image = test_images[i]
         predicted_image.shape = (IMAGE_SIZE_X, IMAGE_SIZE_Y);
         save_numpy_array_as_image(predicted_image, save_dir, '/label_' + str(pl) + '_' + str(i) + '.png')
         i += 1
