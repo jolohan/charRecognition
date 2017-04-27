@@ -9,20 +9,20 @@ import tensorflow as tf
 import datetime
 import glob
 import time
+import imageProc as ip
+from PIL import Image
 
 DISPLAY_FREQUENCY = 50
 CONTINUE_TRAINING_ON_MODEL = False
 
 TRAINING_DATA_SET = "chars74k-lite"
-IMAGE_SIZE_X = 20
-IMAGE_SIZE_Y = IMAGE_SIZE_X
 
 # Network paramters
-TEST_SET_SHARE = 0.1
-TRAINING_NUMBER = 500
-LEARNING_RATE = 0.002
+TRAINING_NUMBER = 1000
+LEARNING_RATE = 0.01
 NUMBER_OF_HIDDEN_NODES_1 = 100
 NUMBER_OF_HIDDEN_NODES_2 = 100
+#NUMBER_OF_HIDDEN_NODES_3 = 52
 NUMBER_OF_LOGITS = 26
 
 def main():
@@ -39,41 +39,6 @@ def display_train_loss(x,y):
     plt.xlabel('Number of iterations')
     plt.grid(True)
     plt.show()
-
-def load_train_data():
-    """Loads a data set and returns two lists:
-
-    images: a list of Numpy arrays, each representing an image.
-    labels: a list of numbers that represent the images labels.
-    """
-    # Get all subdirectories of data_dir. Each represents a label.
-    data_dir = os.path.join("datasets", TRAINING_DATA_SET, "Training")
-    directories = [d for d in os.listdir(data_dir)
-                   if os.path.isdir(os.path.join(data_dir, d))]
-    # Loop through the label directories and collect the data in
-    # two lists, labels and images.
-    labels = []
-    images = []
-
-    i = 0
-    print("Start loading of ", len(directories), " image directories")
-    for d in directories:
-        label_dir = os.path.join(data_dir, d)
-        file_names = [os.path.join(label_dir, f)
-                      for f in os.listdir(label_dir) if f.endswith(".jpg")]
-        # For each label, load it's images and add them to the images list.
-        # And add the label number (i.e. directory name) to the labels list.
-        numberOfImages = len(file_names)
-        for g in range(int(round(numberOfImages * TEST_SET_SHARE)), numberOfImages):
-            f = file_names[g]
-            #images.append(pre_process_single_img(skimage.data.imread(f)))
-            images.append(skimage.data.imread(f))
-            labels.append(i)
-
-        print("Loaded directory number ", i)
-        i += 1
-    print("Loaded %i pics" % len(images))
-    return images, labels
 
 def load_test_data_as_numpy_array(data_dir):
     images = []
@@ -124,33 +89,25 @@ def save_model(sess):
     # `save` method will call `export_meta_graph` implicitly.
     # you will get saved graph files:my-model.meta
 
-def pre_process_single_img(img):
-    img_y = img
-    img_y = (img_y / 255.).astype(np.float32)
-    #img_y = (exposure.equalize_adapthist(img_y,) - 0.5)
-    #img_y = skimage.filters.sobel(img_y)
-    return img_y
-
 def add_dimension(img):
     return img.reshape(img.shape + (1,))
 
 def normalizeNpArray(npArray):
     train_images_a = npArray
     train_images_a = train_images_a.astype(np.float32)
+    mean = np.mean(train_images_a)
     for i in range(len(train_images_a)):
         for g in range(len(train_images_a[i])):
             for h in range(len(train_images_a[i][g])):
-                a = train_images_a[i][g][h]/255.0
+                a = train_images_a[i][g][h] - mean
+                a = a/255
                 train_images_a[i][g][h] = a
     return train_images_a
 
 def train():
     # Load training and testing datasets.
 
-    train_images, labels = load_train_data()
-    for i in range(len(train_images)):
-        image = pre_process_single_img(train_images[i])
-        train_images[i] = image
+    train_images, labels = ip.load_data(test=False, augment=True)
 
     print("Unique Labels: {0}\nTotal Train Images: {1}".format(len(set(labels)), len(train_images)))
 
@@ -159,8 +116,10 @@ def train():
     # display_label_images(train_images, 27)
 
     # Resize images = not needed
-
-    #train_images32 = [pre_process_single_img(image) for image in train_images32]
+    print("Pre-processing pics")
+    i = 0
+    #train_images = [ip.pre_process_single_img(image) for image in train_images]
+    print("Done with pre-processing")
 
     #save_images_and_labels_to_imagefile(train_images, labels)
 
@@ -170,11 +129,11 @@ def train():
     labels_a = np.array(labels)
     print("labels_a:", labels_a)
     train_images_a = np.array(train_images)
-    #train_images_a = normalizeNpArray(train_images_a)
+    train_images_a = ip.normalizeNpArray(train_images_a)
 
     print("labels: ", labels_a.shape, "\nTrain images: ", train_images_a.shape)
 
-    if CONTINUE_TRAINING_ON_MODEL:
+    """if CONTINUE_TRAINING_ON_MODEL:
         # Restore session and variables/nodes/weights
         session = tf.Session()
         meta_file = os.path.join("output", MODEL_DIR, "save.ckpt.meta")
@@ -183,9 +142,9 @@ def train():
         checkpoint_dir = os.path.join("output", MODEL_DIR)
         saver.restore(session, tf.train.latest_checkpoint(checkpoint_dir))
         graph = tf.get_default_graph()
-    else:
-        # Create a graph to hold the model.
-        graph = tf.Graph()
+    else:"""
+    # Create a graph to hold the model.
+    graph = tf.Graph()
 
     # Create model in the graph.
     with graph.as_default():
@@ -194,7 +153,7 @@ def train():
             images_ph = graph.get_tensor_by_name("images_ph:0")
             labels_ph = graph.get_tensor_by_name("labels_ph:0")
         else:
-            images_ph = tf.placeholder(tf.float32, [None, IMAGE_SIZE_X, IMAGE_SIZE_Y, 1],
+            images_ph = tf.placeholder(tf.float32, [None, ip.IMAGE_SIZE_X, ip.IMAGE_SIZE_Y, 1],
                                    name="images_ph")
             labels_ph = tf.placeholder(tf.int32, [None], name="labels_ph")
 
@@ -230,17 +189,17 @@ def train():
             # Create training op.
             adam = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE, name="Adam")
             train = adam.minimize(loss)
-            print(train)
+            #print(train)
 
         # Convert logits to label indexes (int).
         # Shape [None], which is a 1D vector of length == batch_size.
         predicted_labels = tf.argmax(logits, 1)
 
-        print("images_flat: ", images_flat)
+        """print("images_flat: ", images_flat)
         print("logits: ", logits)
         print("loss: ", loss)
         print("predicted_labels: ", predicted_labels)
-        print("images_ph: ", images_ph)
+        print("images_ph: ", images_ph)"""
 
         if not CONTINUE_TRAINING_ON_MODEL:
             # And, finally, an initialization op to execute before training.

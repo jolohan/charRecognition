@@ -97,5 +97,5 @@ test.sh
 *.swp
 *.so
 
-chars74k-lite
+datasets/*
 output/*
