@@ -20,8 +20,8 @@ def drawRectangle(im, detectedImage):
             cell = detectedImage[y][x]
             if (cell == 1):
                 #print(x,y)
-                draw.rectangle((y*stepSize, x*stepSize,
-                                y*stepSize+ip.IMAGE_SIZE_Y, x*stepSize+ip.IMAGE_SIZE_X))
+                draw.rectangle((x*stepSize, y*stepSize,
+                                x*stepSize+ip.IMAGE_SIZE_X, y*stepSize+ip.IMAGE_SIZE_Y))
     im.show()
 
 def detect(image):
@@ -35,13 +35,18 @@ def detect(image):
     outputs = get_outputs(image)
     for i in range(len(outputs)):
         output = outputs[i].max()
-        if (output > 10):
-            y = i%y_tiles
-            x = int((i/y_tiles)-0.5)
+        if (output > 5):
+            x , y = getXY(image, i)
             #print(x, i, x_tiles, i/x_tiles)
             detectedImage[y][x] = 1
-            print(x,y)
     return detectedImage
+
+def getXY(image, i):
+    x_tiles = int(len(image[0]) / stepSize) - 1
+    y_tiles = int(len(image) / stepSize) - 1
+    return (i%x_tiles, int((i/x_tiles)-0.5))
+
+#def joinSquares(image, )
 
 def get_outputs(image):
     sub_images = load_images(image)
