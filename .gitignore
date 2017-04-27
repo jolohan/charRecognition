@@ -93,6 +93,7 @@ ENV/
 .DS_Store
 train.sh
 test.sh
+detect.sh
 *.pyc
 *.swp
 *.so

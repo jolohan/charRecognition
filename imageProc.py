@@ -4,6 +4,7 @@ import skimage.restoration
 #from scipy.ndimage.interpolation import rotate
 from skimage.transform import rotate
 from skimage.feature import local_binary_pattern
+import skimage.exposure as exposure
 #from skimage.util import random_noise
 from skimage import filters
 import skimage.data
@@ -15,7 +16,7 @@ import os
 IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
 TEST_SET_SHARE = 0.2
-MODEL_DIR = "output/10000/2017_04_27_01.03_chars74k-lite"
+MODEL_DIR = "output/500/2017_04_27_15.02_chars74k-lite"
 DATA_SET = "chars74k-lite"
 
 def normalizeNpArray(npArray):
@@ -66,15 +67,15 @@ def augmentData(img, augment):
     if not augment:
         return augmentedImages
     else:
-        augmentedImages.append(invertImage(img))
-        for imgNumber in range(2):
+        #augmentedImages.append(invertImage(img))
+        """for imgNumber in range(2):
             image = augmentedImages[imgNumber]
             for g in range(4):
                 degrees = int(round(random.randrange(0, 30)))
                 augmentedImages.append(rotatePicture(image, degrees))
                 augmentedImages.append(rotatePicture(image, 360-degrees))
             #for i in range(10, 60, 20):"""
-
+        pass
     return augmentedImages
 
 def invertImage(img):

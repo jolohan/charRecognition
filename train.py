@@ -2,7 +2,6 @@ import os
 #import cv2
 import skimage.data
 import skimage.transform
-import skimage.exposure as exposure
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -18,9 +17,9 @@ CONTINUE_TRAINING_ON_MODEL = False
 TRAINING_DATA_SET = "chars74k-lite"
 
 # Network paramters
-TRAINING_NUMBER = 1000
-LEARNING_RATE = 0.01
-NUMBER_OF_HIDDEN_NODES_1 = 100
+TRAINING_NUMBER = 500
+LEARNING_RATE = 0.001
+NUMBER_OF_HIDDEN_NODES_1 = 200
 NUMBER_OF_HIDDEN_NODES_2 = 100
 #NUMBER_OF_HIDDEN_NODES_3 = 52
 NUMBER_OF_LOGITS = 26
