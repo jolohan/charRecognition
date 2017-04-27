@@ -16,7 +16,7 @@ import os
 IMAGE_SIZE_X = 20
 IMAGE_SIZE_Y = IMAGE_SIZE_X
 TEST_SET_SHARE = 0.2
-MODEL_DIR = "output/500/2017_04_27_15.02_chars74k-lite"
+MODEL_DIR = "output/500/2017_04_27_20.35_chars74k-lite"
 DATA_SET = "chars74k-lite"
 
 def normalizeNpArray(npArray):

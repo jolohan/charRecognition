@@ -4,13 +4,20 @@ import imageProc as ip
 import numpy as np
 from PIL import Image, ImageDraw
 
-filename = "detection-2.jpg"
+filenumber = 2
+filename = "detection-"+str(filenumber)+".jpg"
 stepSize = 10
 
 def main():
     image = data.imread(filename)
     im = Image.open(filename)
-    detectedImage = detect(image)
+    detectedImage, outputs = detect(image)
+    drawRectangle(im, detectedImage)
+    detectedImage = joinSquares(image, outputs, detectedImage)
+    im = Image.open(filename)
+    drawRectangle(im, detectedImage)
+    detectedImage = joinSquares(image, outputs, detectedImage)
+    im = Image.open(filename)
     drawRectangle(im, detectedImage)
 
 def drawRectangle(im, detectedImage):
@@ -25,9 +32,9 @@ def drawRectangle(im, detectedImage):
     im.show()
 
 def detect(image):
-    detectedImage = []
     x_tiles = int(len(image[0])/stepSize)-1
     y_tiles = int(len(image)/stepSize)-1
+    detectedImage = []
     for i in range(y_tiles):
         detectedImage.append([])
         for g in range(x_tiles):
@@ -35,18 +42,43 @@ def detect(image):
     outputs = get_outputs(image)
     for i in range(len(outputs)):
         output = outputs[i].max()
-        if (output > 5):
+        if (output > 6):
             x , y = getXY(image, i)
             #print(x, i, x_tiles, i/x_tiles)
             detectedImage[y][x] = 1
-    return detectedImage
+    return detectedImage, outputs
 
 def getXY(image, i):
     x_tiles = int(len(image[0]) / stepSize) - 1
     y_tiles = int(len(image) / stepSize) - 1
     return (i%x_tiles, int((i/x_tiles)-0.5))
 
-#def joinSquares(image, )
+def getI(image, x, y):
+    x_tiles = int(len(image[0]) / stepSize) - 1
+    y_tiles = int(len(image) / stepSize) - 1
+    return y*x_tiles+x
+
+def joinSquares(image, outputs, detected_image):
+    detectedImage = detected_image
+    print(detectedImage)
+    for row1 in range(len(detectedImage)):
+        for col1 in range(len(detectedImage[row1])):
+            if (detectedImage[row1][col1] == 1):
+                for row2 in range(len(detectedImage)):
+                    for col2 in range(len(detectedImage[row2])):
+                        if (detectedImage[row2][col2] == 1):
+                            if (row2 != row1 or col2 != col1):
+                                if (abs(row2-row1) <= closeness and abs(col2-col1) <= closeness):
+                                    output1 = outputs[getI(image, col1, row1)].max()
+                                    output2 = outputs[getI(image, col2, row2)].max()
+                                    if (output1 < output2):
+                                        detectedImage[row1][col1] = 0
+                                    else:
+                                        detectedImage[row2][col2] = 0
+
+    return detectedImage
+
+closeness = 2 - 1%filenumber
 
 def get_outputs(image):
     sub_images = load_images(image)
