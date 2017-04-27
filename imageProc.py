@@ -51,6 +51,7 @@ def pre_process_single_img(img):
     #    cells_per_block=(1, 1), visualise=True)
     #img_y = (exposure.equalize_adapthist(img_y,) - 0.5)
     #img_y = skimage.filters.sobel(img_y)
+    return img_y
     return sobelFilter(img_y)
 
 def sobelFilter(img):

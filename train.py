@@ -118,7 +118,7 @@ def train():
     # Resize images = not needed
     print("Pre-processing pics")
     i = 0
-    #train_images = [ip.pre_process_single_img(image) for image in train_images]
+    train_images = [ip.pre_process_single_img(image) for image in train_images]
     print("Done with pre-processing")
 
     #save_images_and_labels_to_imagefile(train_images, labels)
